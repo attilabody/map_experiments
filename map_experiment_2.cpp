@@ -32,8 +32,13 @@ struct Key {
     }
 };
 
+struct static_string_if {
+    virtual ~static_string_if() {}
 
-template<int N> class static_string {
+    virtual operator char const*() const = 0;
+};
+
+template<int N> class static_string : public static_string_if {
     char m_buffer[N+1];
 
 public:
@@ -57,8 +62,13 @@ public:
         return *this;
     }
 
-    operator char const*() const {
+    virtual operator char const*() const {
         return m_buffer;
+    }
+
+    static_string& operator <<(static_string_if& other) {
+        strncat(m_buffer, other, N - strlen(m_buffer));
+        return *this;
     }
 };
 
@@ -74,5 +84,12 @@ int main( int argc, char ** argv) {
     cout << static_cast<char const*>(m[k]) << endl;
     cout << "..." << endl;
 
+    static_string<64> s1("Hello world!");
+    static_string<1>  s2(" ");
+    static_string<32> s3("Goodbye world!");
+
+    s1 << s2 << s3;
+    cout << static_cast<char const *>(s1) << endl;
+    
     return 0;
 }
